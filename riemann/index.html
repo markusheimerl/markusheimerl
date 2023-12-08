@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>one page to rule them all</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="Description" content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+		<link rel="stylesheet" type="text/css" href="/style.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js" integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+		<!-- Matomo -->
+		<script>
+			var _paq = window._paq = window._paq || [];
+			/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+			_paq.push(['trackPageView']);
+			_paq.push(['enableLinkTracking']);
+			(function() {
+			var u="//r3dapple.de/matomo50/";
+			_paq.push(['setTrackerUrl', u+'matomo.php']);
+			_paq.push(['setSiteId', '1']);
+			var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+			g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+			})();
+		</script>
+		<!-- End Matomo Code -->
+	</head>
+
+	<body>
+		<div class="navbar">
+			<div class="left"><a style="color: white;" href="/">markusheimerl.com</a></div>
+			<a class="hoverable" href="/about">About</a>
+			<a class="hoverable" href="/contact">Contact</a>
+			<a class="hoverable" href="/licenses">Licenses</a>
+			<a class="hoverable" href="/">Blog</a>
+			<div class="right"><a href="https://creativecommons.org/licenses/by-nc/4.0/"><img src="https://licensebuttons.net/l/by-nc/4.0/88x31.png" alt="ccbync4"></a></div>
+		</div>
+		<div class="container">
+			<div class="card">
+				<div class="box">
+					<h1>The riemann hypothesis and its relation to the distribution of prime numbers</h1>
+					<div class="row"><small>Last changed: 10.02.2021</small></div>
+					<a href="https://www.youtube.com/watch?v=zlm1aajH6gY">QuantaMagazine</a> | <a href="https://www.youtube.com/watch?v=d6c6uIyieoo">NumberPhile</a> | <a href="https://www.youtube.com/watch?v=sD0NjbwqlYw">3Blue1Brown</a> | <a href="https://en.wikipedia.org/wiki/Riemann_zeta_function#Representations">Wikipedia</a> | <a href="http://empslocal.ex.ac.uk/people/staff/mrwatkin/zeedta/encoding2.htm">University of Exeter, Mr Watkin</a> (<a href="https://google.gogoprivate.com/https?http://empslocal.ex.ac.uk/people/staff/mrwatkin//zeta/encoding2.htm">mirror</a>)
+					<hr class="solid">
+					<div class="row">
+						<div class="col">
+								<p>
+									This is the zeta function:
+									</p>		<p>
+									\(\zeta(z) = \sum\limits_{n=1}^{\infty} \frac{1}{n^z}\)
+									</p>		<p>
+									Here, \(z\) is a complex number \(z = a + ib\).
+									How do we take a complex number to the power of a natural one?
+								</p>
+								<p>
+									Four mathematical rules are necessary to work that out. May \(x, y, a, b, m \in \mathbb{R}\) and \(m > 0\) and \(i = \sqrt{-1}\) then:
+									<ul>					
+										<li>\(x = e^{ln(x)}\)</li>
+										<li>\(log_{m}(x^y) = y * log_{m}(x)\)</li>
+										<li>\(x^{a+b} = x^a * x^b\)</li>
+										<li><a href="https://en.wikipedia.org/wiki/Euler%27s_formula">Euler's Formula</a>: \(e^{ix} = cos(x) + isin(x)\)</li>
+									</ul>
+										Steps:
+									<ol>					
+										<li>\(x^{a+ib} = e^{ln(x^{a+ib})}\)</li>
+										<li>\( = e^{(a+ib) * ln(x)}\)</li>
+										<li>\( = e^{aln(x) + ibln(x)}\)</li>
+										<li>\( = e^{aln(x)} * e^{ibln(x)}\)</li>
+										<li>\( = e^{ln(x^a)} * e^{ibln(x)}\)</li>
+										<li>\( = x^a * e^{ibln(x)}\)</li>
+										<li>\( = x^a * (cos(bln(x)) + isin(bln(x))) \)</li>
+										<li>\( = x^acos(bln(x)) + x^aisin(bln(x)))\)</li>
+									</ol>
+								</p>
+
+								<p>
+									Here is what the zeta function looks like in javascript:
+									<code>
+										<pre>
+function zeta(z, limit){
+  var zres = new Complex(0, 0);
+  for(var x = 1; x <= limit; x++){
+    var ii = z.imaginary * Math.log(1/x);
+    var pp = Math.pow(1/x, z.real);
+    zres.real += pp * Math.cos(ii);
+    zres.imaginary += pp * Math.sin(ii);
+  }
+  return zres;
+}
+									</pre>
+									</code>
+								</p>
+								<p>
+									\(\zeta(z)\) converges for \(Re(z) > 1\).	Try it out below. You can move and zoom the coordinate system if the simulation is running.
+								</p>
+						 		<canvas id="zeta_convergence" height="500" role="img" aria-label="zeta convergance"></canvas>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col">
+								<p>
+									We get a more complete picture when observing how the zeta function changes the the entire complex plane by visualizing more points.
+								</p>
+								<p>
+									Enter an interval and the density of points.
+								</p>
+								<canvas id="transformation" height="500"  role="img" aria-label="transformation"></canvas>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col">
+								<p>
+								The zeta function converges only for  values \(Re(z) > 1\). By analytically continuing
+								it to $$\zeta(z) = \frac{1}{z-1}\sum_{n=1}^{\infty}(\frac{n}{(n+1)^z} - \frac{n-z}{n^z})$$
+								we can expand the space for convergance to  \(Re(z) > 0\) excluding \(Re(z) = 1\).
+								</p>
+								<canvas id="analytic_continuation" height="500" role="img" aria-label="analytic_continuation"></canvas>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col">
+							<p>
+								For some values in \(0 < Re(z) < 1\) the zeta function equals to zero.
+								Riemann hypothesized that all those zeros have a real value of \(0.5\).
+								Here the black dots along 0.5 are evaluated by the extended zeta function
+								and rendered in red. Some of them converge to \(0 + 0i\). These are the non trivial
+								zeta zeros.
+							</p>
+							<canvas id="nontrivzetazeros" height="500" role="img" aria-label="nontrivzetazeros"></canvas>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col">
+							<p>
+								The function
+								$$\psi(x) = \sum_{n \leq x}^{} \Lambda(n)$$
+								was introduced by Chebyshev, which counts all powers of primes.
+								Each \(p^k, k \in \mathbb{N}\) is weighted \(\log(p)\). (Seen in black)
+							</p>
+							<p>
+								This function can also be expressed with a sum of the non trivial zeta zeros \(\rho\).
+								Thats all places the zeta function evaluates to 0,0 when its real input was between
+								0 and 1.
+								$$\psi_{0}(x) = x - \ln(2\pi) - \sum_{\rho}^{\infty}{\frac{x^\rho}{\rho}} - \frac{1}{2}\ln(1-\frac{1}{x^2})$$
+							</p>
+							<p>
+								As all non trivial zeros come in conjugate pairs e.g. \(0.5 + 14.13i\) and \(0.5 - 14.13i\), the imaginary part
+								cancels out and we are left with a real function. (Depicted in red)
+							</p>
+							<p>
+							<a href="riemann.html">All functions in javascript</a>
+							</p>
+							<canvas id="zetaharmonic" height="500" role="img" aria-label="zetaharmonic"></canvas>
+						</div>
+					</div>
+					<script src="riemann.js"></script>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

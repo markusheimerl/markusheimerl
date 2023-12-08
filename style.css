@@ -1,0 +1,151 @@
+html {
+font-family: 'Hind';
+}
+
+body {
+background: #606060 url(bg.jpg);
+-webkit-background-size: cover;
+-moz-background-size: cover;
+-o-background-size: cover;
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: fixed;
+}
+
+.container {
+width: 100%;
+padding: 50px 0px;
+}
+
+.card{
+width: 80%;
+position: relative;
+display: block;
+margin: 0px auto;
+}
+
+.box{
+width: 90%;
+padding: 20px;
+background: rgba(245,245,245,.96);
+border-radius: 10px;
+display: block;
+float: left;
+margin-bottom: 20px;
+overflow: auto;
+}
+
+.box pre{
+
+}
+
+.katex-display {
+overflow-x: auto;
+overflow-y: hidden;
+}
+
+table {
+table-layout: fixed;
+width: 100%;
+}
+
+table tr {
+word-wrap: break-word;
+overflow-wrap: break-word;
+}
+
+.subbox{
+width: 250px;
+min-height: 330px;
+margin-top: 30px;
+margin-bottom: 20px;
+margin-left: 15px;
+margin-right: 15px;
+float: left;
+border: 2px solid black;
+background-color: white;
+border-radius: 5px;
+text-align: center;
+}
+
+.content{
+margin-top: 15px;
+margin-bottom: 0px;
+color: black;
+font-size: 17px;
+}
+
+.navbar {
+overflow: hidden;
+background-color: #333;
+width: 100%;
+border-radius: 10px;
+}
+
+.navbar a.hoverable {
+float: right;
+display: block;
+color: #f2f2f2;
+text-align: center;
+padding: 14px 16px;
+text-decoration: none;
+}
+
+.navbar div.left {
+float: left;
+color: #f2f2f2;
+padding: 12px 12px;
+}
+
+.navbar div.right {
+float: right;
+padding: 6px 11px;
+}
+
+.navbar a.hoverable:hover {
+background: #ddd;
+color: black;
+}
+
+.solid {
+border-top: 2px solid #000;
+}
+
+.preview{
+outline: 1px solid #000000;
+}
+
+canvas {
+display: block;
+margin: 0 auto;
+outline: 1px solid #000000;
+}
+
+.center {
+display: block;
+margin-left: auto;
+margin-right: auto;
+width: 50%;
+}
+
+.btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: #f1f1f1;
+    color: black;
+    font-size: 16px;
+    padding: 16px 30px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+.btn:hover {
+    background-color: black;
+    color: white;
+  }
