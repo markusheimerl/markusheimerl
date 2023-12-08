@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>one page to rule them all</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Description"
+    content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
+  <link href="/lib/rainbow.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <pre><code data-language="c">/*
+* Copyright 2021 Markus Heimerl, OTH Regensburg
+* Licensed under CC BY-NC 4.0
+*
+* ANY USE OF THIS SOFTWARE MUST COMPLY WITH THE
+* CREATIVE COMMONS ATTRIBUTION-NONCOMMERCIAL 4.0 INTERNATIONAL LICENSE
+* AGREEMENTS
+*/
+#include "stdlib.h"
+#include "stdio.h"
+#include "math.h"
+#include "time.h"
+#include "float.h"
+#include "string.h"
+
+#define NUMBEROFLAYERS 3
+
+#define NEURONSINPUTLAYER 784
+#define NEURONSHIDDENLAYER 200
+#define NEURONSOUTPUTLAYER 10
+
+#define ACTIVATIONFUNCTION relu
+#define ACTIVATIONFUNCTION_DERIVATIVE Drelu
+#define ACTIVATIONFUNCTIONSTRING "relu"
+
+#define RANDOMCALCULATION ((double)rand()/(double)RAND_MAX)*2-1
+
+#define TRAINING
+
+#ifdef DEBUG
+  #define DEBUGCODE(x) x
+#else
+  #define DEBUGCODE(x)
+#endif
+
+#ifdef TRAINING
+  #define TRAININGCODE(x) x
+#else
+  #define TRAININGCODE(x)
+#endif
+
+// https://machinelearningmastery.com/learning-rate-for-deep-learning-neural-networks/
+#define ALPHA 0.5
+
+typedef struct weight weight;
+typedef struct neuron neuron;
+
+struct weight{
+  double value;
+  neuron* from;
+  neuron* to;
+  double valuedeltasum; // this is calculated by the backpropagation algorithm. Its the sum of all training examples's directions for this weight's value to change for steepest ascend of cost function of 13000 dimensional function that is this network
+};
+
+struct neuron{
+  weight** weights;
+  int weightssize;
+  double value;
+  int layer;
+  int uniqueid;
+  double bias;
+  double biasdeltasum; // this is calculated by the backpropagation algorithm. Its the sum of all training examples's directions for this bias's value to change for steepest ascend of cost function of 13000 dimensional function that is this network
+};
+
+double relu(double a){return a >= 0.0 ? a : 0.0;}
+// https://stats.stackexchange.com/questions/333394/what-is-the-derivative-of-the-relu-activation-function
+double Drelu(double a){return a > 0.0 ? 1 : 0.0;} // its actually undefined for a = 0.0
+double sigmoid(double a){return 1/(1 + exp(-a));}
+// https://math.stackexchange.com/questions/78575/derivative-of-sigmoid-function-sigma-x-frac11e-x
+double Dsigmoid(double a){return sigmoid(a) * (1 - sigmoid(a));}
+double normalize(double val, double max){if(val > 0){return val/max;}else{return 0.0;}}
+
+char* readFileBytes(const char* filename, long* size){
+  FILE* fileptr;
+  char* buffer;
+
+  fileptr = fopen(filename, "rb");
+  fseek(fileptr, 0, SEEK_END);
+  *size = ftell(fileptr);
+  rewind(fileptr);
+
+  buffer = (char*)malloc(*size * sizeof(char));
+  fread(buffer, *size, 1, fileptr);
+  fclose(fileptr);
+  
+  // if you are having troubles, cast this buffer to (unsigned char*) when inspecting it
+  return buffer;
+}
+
+void writeFileDoubles(const char* filename, double* buffer, int buffersize){
+  FILE *fileptr;
+  fileptr = fopen(filename, "wb");
+  fwrite(buffer, sizeof(double), buffersize, fileptr);
+  fclose(fileptr);
+}
+
+double* readFileDoubles(const char* filename, long* sizeinbytes){
+  FILE* fileptr;
+  double* buffer;
+
+  fileptr = fopen(filename, "rb");
+  fseek(fileptr, 0, SEEK_END);
+  *sizeinbytes = ftell(fileptr);
+  rewind(fileptr);
+
+  buffer = (double*)malloc(*sizeinbytes);
+  fread(buffer, *sizeinbytes, 1, fileptr);
+  fclose(fileptr);
+  
+  // if you are having troubles, cast this buffer to (unsigned char*) when inspecting it
+  return buffer;
+}
+
+void initNetwork(int networksize, int* layersizes, neuron** allneurons){
+  
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){
+    int offset = 0;
+    for(int j = 0; j < i; j++){
+      offset += layersizes[j];
+    }
+    
+    for(int j = 0; j < layersizes[i]; j++){
+      neuron* a = (neuron*)malloc(sizeof(neuron));
+      a->weights = (weight**)malloc(sizeof(weight*) * layersizes[i + 1]);
+      a->weightssize = layersizes[i + 1];
+      a->value = 0;
+      a->layer = i;
+      a->uniqueid = offset + j;
+      // the input neurons dont have a bias
+      if(i > 0) a->bias = RANDOMCALCULATION;
+      else a->bias = 0.0;
+      a->biasdeltasum = 0.0;
+      allneurons[offset + j] = a;
+    }
+  }
+  
+  // add output neurons
+  int offset = 0;
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){
+    offset += layersizes[i];
+  }
+  for(int i = 0; i < layersizes[NUMBEROFLAYERS - 1]; i++){
+    neuron* c = (neuron*)malloc(sizeof(neuron));
+    c->weights = NULL;
+    c->weightssize = 0;
+    c->value = 0;
+    c->layer = NUMBEROFLAYERS - 1;
+    c->uniqueid = offset + i;
+    //c->bias = 0.0;
+    c->bias = RANDOMCALCULATION;
+    c->biasdeltasum = 0.0;
+    allneurons[offset + i] = c;
+  }
+  
+  // add the weights
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){
+    
+    int offset = 0;
+    for(int j = 0; j < i; j++){
+      offset += layersizes[j];
+    }
+
+    // add weights for input layer
+    for(int j = 0; j < layersizes[i]; j++){
+      for(int k = 0; k < layersizes[i+1]; k++){
+        allneurons[offset + j]->weights[k] = (weight*)malloc(sizeof(weight));
+        allneurons[offset + j]->weights[k]->from = allneurons[offset + j];
+        allneurons[offset + j]->weights[k]->to = allneurons[offset + layersizes[i] + k];
+        allneurons[offset + j]->weights[k]->value = RANDOMCALCULATION;
+        allneurons[offset + j]->weights[k]->valuedeltasum = 0.0;
+      }
+    }  
+  }
+}
+
+void printSingleNeuron(neuron* n){
+  printf("Neuron: neuronpointer: %p, weightspointer: %p, weightssize: %d, value: %f, layer: %d, uniqueid: %d\n", n, n->weights, n->weightssize, n->value, n->layer, n->uniqueid);
+  for(int j = 0; j < n->weightssize; j++){
+    printf("Weight Number #%d: value: %f, from: %p, to: %p\n", j, n->weights[j]->value, n->weights[j]->from, n->weights[j]->to);
+  }
+}
+
+char* getWeightValueAsString(neuron* n, int weightindex, char* buf){
+  sprintf(buf,"%f", n->weights[weightindex]->value);
+  return buf;
+}
+
+char* getNeuronValueAsString(neuron* n, char* buf){
+  sprintf(buf,"%f", n->value);
+  return buf;
+}
+
+char* getBiasValueAsString(neuron* n, char* buf){
+  sprintf(buf,"%f", n->bias);
+  return buf;
+}
+
+void printAllNeurons(neuron** allneurons, int networksize){
+  for(int i = 0; i < networksize; i++){
+    printSingleNeuron(allneurons[i]);
+  }
+}
+
+void printOutputs(neuron** allneurons, int* layersizes){
+  int offset = 0;
+  for(int j = 0; j < NUMBEROFLAYERS-1; j++){
+    offset += layersizes[j];
+  }
+  for(int i = 0; i < layersizes[NUMBEROFLAYERS-1]; i++){
+    printSingleNeuron(allneurons[offset + i]);
+  }
+}
+
+void feedNetwork(unsigned char* inputdata, neuron** allneurons, int* layersizes){
+  for(int i = 0; i < layersizes[0]; i++){
+    allneurons[i]->value = normalize((double)inputdata[i], 255);
+    DEBUGCODE(printf("\n%d, %f\n", i, (double)inputdata[i]));
+  }
+}
+
+void feedForward(neuron** allneurons, int* layersizes){
+  DEBUGCODE(printf("------------------------------------------------------ EVALUATION -----------------------------------------------------------------\n"));
+  for(int k = 0; k < NUMBEROFLAYERS - 1; k++){
+    int offset = 0;
+    for(int j = 0; j < k; j++){offset += layersizes[j];}
+    for(int i = 0; i < layersizes[k]; i++){
+      for(int j = 0; j < layersizes[k+1]; j++){
+        allneurons[offset + i]->weights[j]->to->value += ACTIVATIONFUNCTION(allneurons[offset + i]->value) * allneurons[offset + i]->weights[j]->value;
+        // if this is the last value thats being added for this neuron, add its bias on top, then its done
+        if(i+1 == layersizes[k]) {
+          allneurons[offset + i]->weights[j]->to->value += allneurons[offset + i]->weights[j]->to->bias;
+          DEBUGCODE(printf("Bias %f of neuron %d added to itself to total: %f\n", allneurons[offset + i]->weights[j]->to->bias, allneurons[offset + i]->weights[j]->to->uniqueid, allneurons[offset + i]->weights[j]->to->value));
+        }
+        DEBUGCODE(printf("Neuron %d, uniqueid: %d: Value: %f multiplied with Weight: %d Value: %f results in %f which will be added to Neuron %d's value which totals now %f\n", allneurons[offset + i]->uniqueid, allneurons[offset + i]->uniqueid, ACTIVATIONFUNCTION(allneurons[offset + i]->value), j, allneurons[offset + i]->weights[j]->value, ACTIVATIONFUNCTION(allneurons[offset + i]->value) * allneurons[offset+i]->weights[j]->value, allneurons[offset+i]->weights[j]->to->uniqueid, allneurons[offset+i]->weights[j]->to->value));
+      }
+    }
+  }
+  DEBUGCODE(printf("------------------------------------------------------OUTPUT LAYER-----------------------------------------------------------------\n"));
+
+  // handle output
+  int offset = 0;
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){offset += layersizes[i];}
+  for(int i = 0; i < layersizes[NUMBEROFLAYERS-1]; i++){
+    allneurons[offset + i]->value = sigmoid(allneurons[offset + i]->value);
+    DEBUGCODE(printSingleNeuron(allneurons[offset + i]));
+  }
+  
+}
+
+void printImage(unsigned char* img){
+  for(int i = 0; i < 28; i++){
+    for(int j = 0; j < 28; j++){
+      printf("%hhu", img[i*28 + j]);
+      if(img[i*28 + j] >= 100) printf(" ");
+      else if(img[i*28 + j] >= 10) printf("  ");
+      else printf("   ");
+    }
+    printf("\n");
+  }
+}
+
+unsigned char** getImages(char* filename, int* numberofsamples){
+  long size = 0;
+  unsigned char* images = (unsigned char*)readFileBytes(filename, &size);
+  
+  int activebyte = 0;
+  
+  unsigned int magicnumber = 0;
+  for(; activebyte < 4; activebyte++){
+    magicnumber <<= 8;
+    magicnumber |= images[activebyte];
+  }
+  DEBUGCODE(printf("Magic number: %d | ", magicnumber));
+  
+  unsigned int numberofimages = 0;
+  for(; activebyte < 8; activebyte++){
+    numberofimages <<= 8;
+    numberofimages |= images[activebyte];
+  }
+  DEBUGCODE(printf("Number of images: %d | ", numberofimages));
+  *numberofsamples = numberofimages;
+  
+  unsigned int numberofrows = 0;
+  for(; activebyte < 12; activebyte++){
+    numberofrows <<= 8;
+    numberofrows |= images[activebyte];
+  }
+  DEBUGCODE(printf("Number of rows per image: %d | ", numberofrows));
+  
+  unsigned int numberofcolumns = 0;
+  for(; activebyte < 16; activebyte++){
+    numberofcolumns <<= 8;
+    numberofcolumns |= images[activebyte];
+  }
+  DEBUGCODE(printf("Number of columns: %d\n", numberofcolumns));
+
+  unsigned char** train_images = (unsigned char**)malloc(sizeof(unsigned char*) * numberofimages);
+
+  for(int j = 0; j < numberofimages; j++){
+    train_images[j] = (unsigned char*)malloc(sizeof(unsigned char) * numberofrows * numberofcolumns);
+    for(int i = 0; i < numberofcolumns * numberofrows; i++){
+      train_images[j][i] = images[activebyte];
+      activebyte++;
+    }
+  }
+  
+  return train_images;
+}
+
+unsigned char* getLabels(char* filename, int* numberofsamples){
+  
+  long size = 0;
+  unsigned char* labels = (unsigned char*)readFileBytes(filename, &size);
+  
+  int activebyte = 0;
+  
+  unsigned int magicnumber = 0;
+  for(; activebyte < 4; activebyte++){
+    magicnumber <<= 8;
+    magicnumber |= labels[activebyte];
+  }
+  DEBUGCODE(printf("Magic number: %d | ", magicnumber));
+  
+  unsigned int numberoflabels = 0;
+  for(; activebyte < 8; activebyte++){
+    numberoflabels <<= 8;
+    numberoflabels |= labels[activebyte];
+  }
+  DEBUGCODE(printf("Number of Labels: %d\n", numberoflabels));
+  *numberofsamples = numberoflabels;
+
+  unsigned char* train_labels = (unsigned char*)malloc(sizeof(unsigned char) * numberoflabels);
+
+  for(int j = 0; j < numberoflabels; j++){
+    train_labels[j] = labels[activebyte];
+    activebyte++;
+  }
+  
+  return train_labels;
+}
+
+int getOutputOffset(int* layersizes){
+  int offset = 0;
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){offset += layersizes[i];}
+  return offset;
+}
+
+
+double calculateCost(neuron** allneurons, int* layersizes, unsigned char train_label){
+  double cost = 0;
+  int offset = getOutputOffset(layersizes);
+  for(int i = 0; i < layersizes[NUMBEROFLAYERS-1]; i++){
+    if(i == (int)train_label){
+      cost += (allneurons[offset + i]->value - 1.0) * (allneurons[offset + i]->value - 1.0);
+    }else{
+      cost += (allneurons[offset + i]->value - 0.0) * (allneurons[offset + i]->value - 0.0);
+    }
+  }
+  DEBUGCODE(printf("TrainLabel: %d | Cost: %f \n", (int)train_label, cost));
+  return cost;
+}
+
+void setAllNeuronsToZero(neuron** allneurons, int networksize){
+  for(int i = 0; i < networksize; i++){
+    allneurons[i]->value = 0.0;
+  }  
+}
+
+void resetDeltaSums(neuron** allneurons, int networksize){
+  for(int i = 0; i < networksize; i++){
+    allneurons[i]->biasdeltasum = 0.0;
+    for(int j = 0; j < allneurons[i]->weightssize; j++){
+      allneurons[i]->weights[j]->valuedeltasum = 0.0;
+    }
+  }  
+}
+
+int calculateOffset(int layer, int* layersizes){
+  int offset = 0;
+  for(int i = 0; i < layer; i++){offset += layersizes[i];}
+  return offset;
+}
+
+int numberOfNeuronsInLayerWithMostNeuronsButNotInputLayer(int* layersizes){
+  int max = 0;
+  for(int i = 1; i < NUMBEROFLAYERS-1; i++){if(layersizes[i] > max) max = layersizes[i];}
+  return max;
+}
+
+void trainNetwork(neuron** allneurons, int* layersizes, unsigned char** train_images, unsigned char* train_labels, int numberoftrainingsamples, int networksize, int numberoflayers, int batchsize){
+  
+  double totalnetworkcost = 0;
+  
+  double correctpredictionspercentage = 0;
+  
+  for(int i = 0; i < numberoftrainingsamples; i++){
+
+    DEBUGCODE(
+      printImage(train_images[i]);
+      printf("Sample #%d\n", i);
+    );
+    
+    // --- FEED INPUT ---
+    feedNetwork(train_images[i], allneurons, layersizes);
+    // --- ---
+      
+    // --- FF ---
+    feedForward(allneurons, layersizes);
+    // --- ---
+
+    // --- PRINT OUTPUT ---
+    DEBUGCODE(printOutputs(allneurons, layersizes));
+    // --- ---
+    
+    // --- CALCULATE COST ---
+    totalnetworkcost += calculateCost(allneurons, layersizes, (int)train_labels[i]);
+    // --- ---
+
+    // --- BACKPROPAGATION ---  
+    DEBUGCODE(printf("\n"));
+    DEBUGCODE(printf("------------------- DETERMINE EFFECT OF EVERY WEIGHT OF EVERY NEURON OF (numberoflayers-1-(P+1))'th LAYER AND THE BIAS OF EVERY Pth LAYER NEURON ON COST ---------------\n"));
+    DEBUGCODE(
+      printf("Label: %d\n", (int)train_labels[i]);
+      for(int j = 0; j < layersizes[numberoflayers-1]; j++){
+        printf("Number %d: Actual Output: %f | Supposed Output: %f | Cost: %f\n", j, actualOutput[j], supposedOutput[j], calculateCost(allneurons, layersizes, (int)train_labels[i]));
+      }
+      printf("\n");
+    );
+  
+    double dCidaLmP[numberoflayers][numberOfNeuronsInLayerWithMostNeuronsButNotInputLayer(layersizes)]; // Ci is cost of ith training sample
+    for(int j = 0; j < layersizes[numberoflayers-1]; j++){
+      double supposed = (int)train_labels[i] == j ? 1.0 : 0.0;
+      dCidaLmP[numberoflayers-1][j] = 2 * (allneurons[getOutputOffset(layersizes) + j]->value - supposed);
+    }
+    
+    for(int p = 0; p < numberoflayers-1; p++){/* NOTE FOR FUTURE SELF: HERE YOU COULD SPECIFIY WHICH LAYERS GET TRAINED, IF YOU JUST WANT TO TRAIN SPECIFIC LAYERS*/
+      DEBUGCODE(printf("------------------------------- LAYER: Lm%d ----------------------------------\n", p));
+      for(int k = 0; k < layersizes[numberoflayers-1-(p+1)]; k++){
+        double dCidaLmPp1_K = 0;
+        
+        for(int j = 0; j < layersizes[numberoflayers-1-(p+0)]; j++){
+          // _J MEANS FOR THIS SPECIFIC (numberoflayers-1-P)'th LAYER NEURON; || _JX MEANS FOR THIS NEURON THE X WEIGHT; THERE ARE layersizes[numberoflayers-1-(p+1)]-1 OTHERS LEADING TO IT, WHICH ARE ITERATED BY K
+          double dCidaLmP_J = dCidaLmP[numberoflayers-1-(p+0)][j]; // effect of neuron output to cost function (very direct)
+          // this is the value of the Jth neuron of layer LmP before the ACTIVATIONFUNCTION was applied
+          double zLmP_J = allneurons[calculateOffset(numberoflayers-1-(p+0), layersizes) + j]->value;
+          zLmP_J += allneurons[calculateOffset(numberoflayers-1-(p+0), layersizes) + j]->bias;
+          
+          double daLmP_JdzLmP_J;
+          double dzLmP_JdwLmP_JK;
+          if(p == 0){
+            daLmP_JdzLmP_J = Dsigmoid(zLmP_J); // effect of result of this zLmP multiplication on the sigmoid output
+            dzLmP_JdwLmP_JK = sigmoid(allneurons[calculateOffset(numberoflayers-1-(p+1), layersizes) + k]->value); // effect of the weight on the entire zLmP_J multiplication (zLmP_J nach wLmP_JK einfach abgeleitet: zLmP_J = wLmP_J0 * aLmP_0 + wLmP_J1 * aLmPp1_1 + ... + bLmP_J -> zLmP_J' = aLmPp1_K
+          }else{
+            daLmP_JdzLmP_J = ACTIVATIONFUNCTION_DERIVATIVE(zLmP_J); // effect of result of this zLmP multiplication on the ACTIVATIONFUNCTION output
+            dzLmP_JdwLmP_JK = ACTIVATIONFUNCTION(allneurons[calculateOffset(numberoflayers-1-(p+1), layersizes) + k]->value); // effect of the weight on the entire zLmP_J multiplication (zLmP_J nach wLmP_JK einfach abgeleitet: zLmP_J = wLmP_J0 * aLmP_0 + wLmP_J1 * aLmPp1_1 + ... + bLmP_J -> zLmP_J' = aLmPp1_K
+          }
+          double dCidwLmP_JK = dzLmP_JdwLmP_JK * daLmP_JdzLmP_J * dCidaLmP_J; // this is the effect of this single weight to the entire cost function of this i'th training sample
+          allneurons[calculateOffset(numberoflayers-1-(p+1), layersizes) + k]->weights[j]->valuedeltasum += dCidwLmP_JK;/*from neuron k of layer LmPp1 to neuron j of layer LmP*/ // we do all this, calculating for this and the other line basically
+          DEBUGCODE(printf("Calculation of effect of weight #%d of neuron %d of layer %dth on cost:\n Value Of Weight: %f | dCidaLmP_J: %f | zLmP_J: %f | daLmP_JdzLmP_J: %f | dzLmP_JdwLmP_JK: %f | dCidwLmP_JK: %f \n\n", j, k, (NUMBEROFLAYERS-1-(p+1)), allneurons[calculateOffset(NUMBEROFLAYERS-1-(p+1), layersizes) + k]->weights[j]->value, dCidaLmP_J, zLmP_J, daLmP_JdzLmP_J, dzLmP_JdwLmP_JK, dCidwLmP_JK));
+          // --- ---
+          
+          if(k == 0){ // effect of biases just has to be calculated once
+            // --- DETERMINE EFFECT OF BIAS OF Jth NEURON OF (numberoflayers-1-(p+0))th LAYER ON COST -- (dCi/dbLmP_J)
+            double dzLmP_JdbLmP_J = 1; // effect of the bias on the entire zLmP_J multiplication (zLmP_J nach bLmP_J einfach abgeleitet: zLmP_J = wLmP_J0 * aLmPp1_0 + wLmP_J1 * aLmPp1_1 + ... + bLmP_J -> zLmP_J' = 1
+            double dCidbLmP_J = dzLmP_JdbLmP_J * daLmP_JdzLmP_J * dCidaLmP_J; // this is the effect of this single bias to the entire cost function of i'th training sample
+            allneurons[calculateOffset(numberoflayers-1-(p+0), layersizes) + j]->biasdeltasum += dCidbLmP_J; // we do all this, calculating for this and the other line basically
+            DEBUGCODE(printf("Calculation of effect of bias of %dth neuron of %dth layer on cost: \nValue Of Bias: %f | dCidaLmP_J: %f | zLmP_J: %f | daLmP_JdzLmP_J: %f | dzLmP_JdbLmP_J: %f | dCidbLmP_J: %f \n\n", j, (NUMBEROFLAYERS-1-(p+0)), allneurons[calculateOffset(NUMBEROFLAYERS-1-(p+0), layersizes) + j]->bias, dCidaLmP_J, zLmP_J, daLmP_JdzLmP_J, dzLmP_JdbLmP_J, dCidbLmP_J));
+          }
+
+          // --- DETERMINE EFFECT OF RESULT OF Kth NEURON OF (NUMBEROFLAYERS-1-(P+1))th LAYER ON COST -- (dCi/daLm1_K)
+          if(p < numberoflayers-2){ // -1 because im calculating this for the layer BEFORE. So at p(outputlayer) we calculate for p-1(last hidden layer) and another -1 because we dont calculate this for the input layer. They dont have biases so we cant change them so we dont have to calculate their effect on cost.
+            double dzLmP_JdaLmPp1_K = allneurons[calculateOffset(numberoflayers-1-(p+1), layersizes) + k]->weights[j]->value; // effect of the neuronresult on the entire zLmP_J multiplication (zLmP_J nach aLmPp1_J einfach abgeleitet: zLmP_J = wLmP_J0 * aLmPp1_0 + wLmP_J1 * aLmPp1_1 + ... + bLmP_J -> zLmP_J' = wLmP_JK
+            double dCidaLmPp1_K_J = dzLmP_JdaLmPp1_K * daLmP_JdzLmP_J * dCidaLmP_J; // jth summand
+            dCidaLmPp1_K += dCidaLmPp1_K_J;
+            DEBUGCODE(printf("Partial calculation of effect of result of %dth neuron of %dth layer on cost: (just the effect it has on neuron %d of layer %d) \nValue of Neuron #%d: %f | dzLmP_JdaLmPp1_K: %f, dCidaLmPp1_K_J: %f\n\n", k, (NUMBEROFLAYERS-1-(p+1)), j, (NUMBEROFLAYERS-1-(p+0)), allneurons[calculateOffset(NUMBEROFLAYERS-1-(p+1), layersizes) + k]->uniqueid, allneurons[calculateOffset(NUMBEROFLAYERS-1-(p+1), layersizes) + k]->value, dzLmP_JdaLmPp1_K, dCidaLmPp1_K_J));
+          }
+        }
+        if(p < numberoflayers-2){
+          DEBUGCODE(printf("Entire dCidaLmPp1_%d: %f\n\n", k, dCidaLmPp1_K));
+          dCidaLmP[numberoflayers-1-(p+1)][k] = dCidaLmPp1_K;
+        }
+      }
+      DEBUGCODE(printf("------------------------------- ----------------------------------\n"));
+    }
+    // --- ---
+    
+        
+    // --- RIGHT OR WRONG PREDICTION ---
+    int offset = 0;
+    for(int j = 0; j < NUMBEROFLAYERS-1; j++){offset += layersizes[j];}
+    double max = 0;
+    int pred = -1;
+    for(int i = 0; i < layersizes[NUMBEROFLAYERS-1]; i++){
+      if(allneurons[offset + i]->value > max){max = allneurons[offset + i]->value; pred = i;}
+    }
+    if(pred == (int)train_labels[i]) correctpredictionspercentage++;
+    // --- ---
+    
+    // --- RESET FOR NEXT TRAINING SAMPLE ---
+    setAllNeuronsToZero(allneurons, networksize);
+    // --- ---
+
+    
+    // --- APPLY CHANGES IF BATCHSIZE REACHED ---
+    if((i != 0) && (i % batchsize == 0)){
+      TRAININGCODE(printf("Batch finished: Average Network Cost: %f\n", totalnetworkcost/batchsize));
+      TRAININGCODE(printf("Percentage of correct predictions: %f\n", correctpredictionspercentage/batchsize));
+      correctpredictionspercentage = 0;
+
+      // --- APPLY AVERAGED DELTA SUMS (SUBTRACT AVERAGE GRADIANT) TO WEIGHTS AND BIASES AND RESET DELTA SUMS FOR NEXT BATCH TO ZERO ---
+      for(int i = 0; i < networksize; i++){
+        allneurons[i]->biasdeltasum = allneurons[i]->biasdeltasum / batchsize;
+        allneurons[i]->bias -= allneurons[i]->biasdeltasum * ALPHA;
+        DEBUGCODE(printf("Neuron %d's bias, with the value of %E, will be changed by %E to result in %E\n", i, allneurons[i]->bias + allneurons[i]->biasdeltasum*(-1)*ALPHA, allneurons[i]->biasdeltasum*(-1)*ALPHA, allneurons[i]->bias));
+        allneurons[i]->biasdeltasum = 0.0;
+        for(int j = 0; j < allneurons[i]->weightssize; j++){
+          allneurons[i]->weights[j]->valuedeltasum = allneurons[i]->weights[j]->valuedeltasum / batchsize;
+          allneurons[i]->weights[j]->value -= allneurons[i]->weights[j]->valuedeltasum * ALPHA;
+          DEBUGCODE(printf("Neuron %d's Weight #%d's value of %E will be changed by %E to result in %E\n", i, j, allneurons[i]->weights[j]->value + allneurons[i]->weights[j]->valuedeltasum*ALPHA, allneurons[i]->weights[j]->valuedeltasum*(-1)*ALPHA, allneurons[i]->weights[j]->value));
+          allneurons[i]->weights[j]->valuedeltasum = 0.0;
+        }
+      }
+      totalnetworkcost = 0;
+    }
+    // --- ---
+  }
+  
+
+}
+
+void exportNetwork(char* filename, neuron** allneurons, int* layersizes, int networksize){
+  // DATASTRUCTURE OF EXPORT:
+  // NUMBEROFLAYERS, layersizes[0], ..., layersizes[NUMBEROFLAYERS-1], networksize, allneurons[0]->bias, allneurons[0]->weightssize, allneurons[0]->weights[0]->value, allneurons[0]->weights[0]->from->uniqueid, 
+  // allneurons[0]->weights[0]->to->uniqueid, ..., allneurons[0]->weights[0]->to->uniqueid, 
+  // ..., allneurons[networksize-1]->bias, allneurons[networksize-1]->weightssize, 
+  // allneurons[networksize-1]->weights[0]->value, allneurons[networksize-1]->from->uniqueid, allneurons[networksize-1]->to->uniqueid, ..., allneurons[networksize-1]->weights[weightssize-1]->to->uniqueid
+  
+  int numberofweights = 0;
+  for(int i = 0; i < networksize; i++){numberofweights += allneurons[i]->weightssize;}
+  
+  int exportsize = 1 +  NUMBEROFLAYERS + 1 + networksize*2 + numberofweights*2;
+  double* export = (double*)malloc(sizeof(double) * exportsize);
+
+  int activeindex = 0;
+  export[activeindex] = NUMBEROFLAYERS;
+  activeindex++;
+  for(int i = 0; i < NUMBEROFLAYERS; i++){
+    export[i + 1] = layersizes[i];
+    activeindex++;
+  }
+  export[activeindex] = networksize;
+  activeindex++;
+  for(int i = 0; i < networksize; i++){
+    export[activeindex] = allneurons[i]->bias;
+    activeindex++;
+    export[activeindex] = allneurons[i]->weightssize;
+    activeindex++;
+    for(int j = 0; j < allneurons[i]->weightssize; j++){
+      export[activeindex] = allneurons[i]->weights[j]->value;
+      activeindex++;
+      export[activeindex] = allneurons[i]->weights[j]->to->uniqueid;
+      activeindex++;
+    }
+  }
+  writeFileDoubles(filename, export, exportsize);
+}
+
+void importNetwork(char* filename, neuron*** allneurons, int** layersizes, int *numberoflayers, int* networksize){
+  // DATASTRUCTURE OF EXPORT:
+  // NUMBEROFLAYERS, layersizes[0], ..., layersizes[NUMBEROFLAYERS-1], networksize, allneurons[0]->bias, allneurons[0]->weightssize, allneurons[0]->weights[0]->value, 
+  // allneurons[0]->weights[0]->to->uniqueid, ..., allneurons[weightssize-1]->weights[0]->to->uniqueid, ..., allneurons[networksize-1]->bias, allneurons[networksize-1]->weightssize, 
+  // allneurons[networksize-1]->weights[0]->value, allneurons[networksize-1]->to->uniqueid, ..., allneurons[networksize-1]->weights[weightssize-1]->to->uniqueid
+    
+  long size;
+  double* import = readFileDoubles(filename, &size);
+  //for(int i = 0; i < size/sizeof(double); i++){printf("%d: %f\n", i, import[i]);}
+  int importsize = size / sizeof(double);
+  
+  int activeindex = 0;
+  
+  (*layersizes) = (int*)malloc(sizeof(int) * (int)import[activeindex]);
+  (*numberoflayers) = (int)import[activeindex];
+  activeindex++;
+  for(int i = 0; i < (int)import[0]; i++){
+    (*layersizes)[i] = (int)import[i + 1];
+    activeindex++;
+  }
+  
+  *networksize = (int)import[activeindex];
+  activeindex++;
+  (*allneurons) = (neuron**)malloc(sizeof(neuron*) * (*networksize));
+  
+  for(int i = 0; i < (*networksize); i++){
+    (*allneurons)[i] = (neuron*)malloc(sizeof(neuron));
+  }
+  
+  for(int i = 0; i < (*networksize); i++){
+    (*allneurons)[i]->bias = import[activeindex];
+    activeindex++;
+    (*allneurons)[i]->weightssize = import[activeindex];
+    activeindex++;
+    (*allneurons)[i]->weights = (weight**)malloc(sizeof(weight*) * (*allneurons)[i]->weightssize);
+    (*allneurons)[i]->value = 0;
+    (*allneurons)[i]->uniqueid = i;
+    
+    for(int j = 0; j < (*allneurons)[i]->weightssize; j++){
+      (*allneurons)[i]->weights[j] = (weight*)malloc(sizeof(weight));
+      (*allneurons)[i]->weights[j]->from = (*allneurons)[i];
+      (*allneurons)[i]->weights[j]->value = import[activeindex];
+      activeindex++;
+      (*allneurons)[i]->weights[j]->to = (*allneurons)[(int)import[activeindex]];
+      activeindex++;
+    }
+  }
+}
+
+void createTrainExportNetwork(char* filename, int numberoftrainingepochs, int batchsize){
+  TRAININGCODE(printf("------ CONFIG ------\nfilename: %s\nnumberoftrainingepochs: %d\nbatchsize: %d\nactivationfunction: "ACTIVATIONFUNCTIONSTRING"\n", filename, numberoftrainingepochs, batchsize));
+  srand(time(NULL));
+
+  // ----------- CONFIG -----------
+  int numberoflayers = NUMBEROFLAYERS;
+  int* layersizes = (int*)malloc(sizeof(int) * numberoflayers);
+  layersizes[0] = NEURONSINPUTLAYER;
+  layersizes[1] = NEURONSHIDDENLAYER;
+  layersizes[2] = NEURONSOUTPUTLAYER;
+  // ----------- -----------
+  
+  // --- INIT ---
+  int networksize = 0;
+  for(int i = 0; i < numberoflayers; i++){networksize += layersizes[i];}
+  neuron** allneurons = (neuron**)malloc(sizeof(neuron*) * networksize);
+  initNetwork(networksize, layersizes, allneurons);
+  // --- ---
+
+  // ----------- PREPARE DATA -----------
+  int numberoftrainingimages = 0;
+  int numberoftestlabels = 0;
+  unsigned char** train_images = getImages("assets/train-images.idx3-ubyte", &numberoftrainingimages);
+  unsigned char* train_labels = getLabels("assets/train-labels.idx1-ubyte", &numberoftestlabels);
+  // ----------- -----------
+
+  // ----------- TRAIN NETWORK ON DATA -----------
+  for(int i = 0; i < numberoftrainingepochs; i++){
+    printf("----------- EPOCH %d -----------\n", i);
+    trainNetwork(allneurons, layersizes, train_images, train_labels, numberoftrainingimages, networksize, numberoflayers, batchsize);
+  }
+  // ----------- -----------
+
+  // ----------- EXPORT CALCULATED WEIGHTS AND BIASES -----------
+  exportNetwork(filename, allneurons, layersizes, networksize);
+  // ----------- -----------
+}
+
+void evaluateNetwork(char* filename){
+  // ----------- TEST: IMPORT NETWORK RUN TESTS -----------
+  int* layersizesImport;
+  neuron** allneuronsImport;
+  int networksizeImport;
+  int numberOfLayersImport;
+  importNetwork(filename, &allneuronsImport, &layersizesImport, &numberOfLayersImport, &networksizeImport);
+
+  // ----------- PREPARE DATA -----------
+  int numberoftestimages = 0;
+  int numberoftestlabels = 0;
+  unsigned char** test_images = getImages("assets/t10k-images.idx3-ubyte", &numberoftestimages);
+  unsigned char* test_labels = getLabels("assets/t10k-labels.idx1-ubyte", &numberoftestlabels);
+  // ----------- -----------
+
+  double totalnetworkcost = 0;
+  double correctpredictionspercentage = 0;
+  
+  printf("----------- EVALUATION TESTSET -----------\n");
+  
+  for(int i = 0; i < numberoftestimages; i++){
+
+    // --- FEED INPUT ---
+    feedNetwork(test_images[i], allneuronsImport, layersizesImport);
+    // --- ---
+      
+    // --- FF ---
+    feedForward(allneuronsImport, layersizesImport);
+    // --- ---
+
+    // --- PRINT OUTPUT ---
+    
+      printImage(test_images[i]);
+      printOutputs(allneuronsImport, layersizesImport);
+    
+    // --- ---
+    
+    // --- CALCULATE COST --- THIS IS NOT NECESSARY TO CALCULATE BUT GIVES GOOD INDICATION OF NETWORK OVER ENTIRE TRAINING SET
+    totalnetworkcost += calculateCost(allneuronsImport, layersizesImport, (int)test_labels[i]);
+    // --- ---
+    
+    // --- WRITE OR WRONG PREDICTION ---
+    int offset = 0;
+    for(int j = 0; j < NUMBEROFLAYERS-1; j++){offset += layersizesImport[j];}
+    double max = 0;
+    int pred = -1;
+    for(int i = 0; i < layersizesImport[NUMBEROFLAYERS-1]; i++){
+      if(allneuronsImport[offset + i]->value > max){max = allneuronsImport[offset + i]->value; pred = i;}
+    }
+    if(pred == (int)test_labels[i]) correctpredictionspercentage++;
+    // --- ---
+    
+    // --- RESET FOR NEXT TRAINING SAMPLE ---
+    setAllNeuronsToZero(allneuronsImport, networksizeImport);
+    // --- ---
+  }
+  printf("Average Network Cost: %f\n", totalnetworkcost/numberoftestimages);
+  printf("Percentage of correct predictions: %f\n", correctpredictionspercentage/numberoftestimages);
+}
+
+void loadTrainExportNetwork(char* filename_load, char* filename_save, int numberoftrainingepochs, int batchsize){
+  
+  printf("------ CONFIG ------\nfilename_load: %s\nfilename_save: %s\nnumberoftrainingepochs: %d\nbatchsize: %d\nactivationfunction: "ACTIVATIONFUNCTIONSTRING"\n", filename_load, filename_save, numberoftrainingepochs, batchsize);
+  
+  int* layersizesImport;
+  neuron** allneuronsImport;
+  int networksizeImport;
+  int numberoflayersImport;
+  importNetwork(filename_load, &allneuronsImport, &layersizesImport, &numberoflayersImport, &networksizeImport);
+
+  // ----------- PREPARE DATA -----------
+  int numberoftrainingimages = 0;
+  int numberoftraininglabels = 0;
+  unsigned char** train_images = getImages("assets/train-images.idx3-ubyte", &numberoftrainingimages);
+  unsigned char* train_labels = getLabels("assets/train-labels.idx1-ubyte", &numberoftraininglabels);
+  // ----------- -----------
+
+  // ----------- TRAIN NETWORK ON DATA -----------
+  for(int i = 0; i < numberoftrainingepochs; i++){
+    printf("----------- EPOCH %d -----------\n", i);
+    trainNetwork(allneuronsImport, layersizesImport, train_images, train_labels, numberoftrainingimages, networksizeImport, numberoflayersImport, batchsize);
+  }
+  // ----------- -----------
+
+  // ----------- EXPORT CALCULATED WEIGHTS AND BIASES -----------
+  exportNetwork(filename_save, allneuronsImport, layersizesImport, networksizeImport);
+  // ----------- -----------
+}
+
+neuron** getAllNeuronsAndWeights(char* filename_load){
+  int* layersizesImport;
+  neuron** allneuronsImport;
+  int networksizeImport;
+  int numberoflayersImport;
+  importNetwork(filename_load, &allneuronsImport, &layersizesImport, &numberoflayersImport, &networksizeImport);
+  return allneuronsImport;
+}
+
+void stepFeedNetwork(neuron** allneuronsImport, int index, unsigned char* input_data){
+  allneuronsImport[index]->value = normalize((double)input_data[index], 255);
+}
+
+void stepFeedForward(neuron** allneurons, int neuronindex, int weightindex, int layer){
+  int layersizes[3];
+  layersizes[0] = 784;
+  layersizes[1] = 784+200;
+  layersizes[2] = 10;
+  
+  allneurons[neuronindex]->weights[weightindex]->to->value += ACTIVATIONFUNCTION(allneurons[neuronindex]->value) * allneurons[neuronindex]->weights[weightindex]->value;
+  if(neuronindex+1 == layersizes[layer]) {
+    allneurons[neuronindex]->weights[weightindex]->to->value += allneurons[neuronindex]->weights[weightindex]->to->bias;
+  }
+}
+
+void fastForwardFeedForwardOfThisLayer(neuron** allneurons, int neuronindex, int weightindex, int layer /*int weightsleftofthisneuron, int neuronsleftofthislayer*/){
+  int layersizes[3];
+  layersizes[0] = 784;
+  layersizes[1] = 200;
+  layersizes[2] = 10;
+  int offset = 0;
+  if(layer == 1) offset = 784;
+  
+  // i think this needs to be done... because we call this function after the current step but before counting up the next weight
+  weightindex += 1;
+  
+  // first finish current neuron
+  for(int i = weightindex; i < layersizes[layer+1]; i++){
+    allneurons[neuronindex]->weights[i]->to->value += ACTIVATIONFUNCTION(allneurons[neuronindex]->value) * allneurons[neuronindex]->weights[i]->value;
+    if(neuronindex+1 == layersizes[layer]) {
+      allneurons[neuronindex]->weights[i]->to->value += allneurons[neuronindex]->weights[i]->to->bias;
+    }
+  }
+
+  neuronindex += 1; // we just finished this one
+  
+  // then run loop for the rest of this layer
+  for(int j = neuronindex; j < layersizes[layer]+offset; j++){
+    for(int i = 0; i < layersizes[layer+1]; i++){
+      allneurons[j]->weights[i]->to->value += ACTIVATIONFUNCTION(allneurons[j]->value) * allneurons[j]->weights[i]->value;
+      if(j+1 == layersizes[layer]+offset) {
+        allneurons[j]->weights[i]->to->value += allneurons[j]->weights[i]->to->bias;
+      }
+    }
+  }
+}
+
+void stepApplySigmoid(neuron** allneurons, int neuronindex){
+
+  allneurons[784+200+neuronindex]->value = sigmoid(allneurons[784+200+neuronindex]->value);
+  
+  
+  /*
+  // handle output
+  int offset = 0;
+  for(int i = 0; i < NUMBEROFLAYERS - 1; i++){offset += layersizes[i];}
+  for(int i = 0; i < layersizes[NUMBEROFLAYERS-1]; i++){
+    allneurons[offset + i]->value = sigmoid(allneurons[offset + i]->value);
+  }
+  */
+}
+
+void predictHardcoded(neuron** allneuronsImport, unsigned char* input_data){
+  int* layersizesImport = (int*)malloc(sizeof(int) * 3);
+  layersizesImport[0] = 784;
+  layersizesImport[1] = 200;
+  layersizesImport[2] = 10;
+
+  // --- FEED INPUT ---
+  feedNetwork(input_data, allneuronsImport, layersizesImport);
+  // --- ---
+    
+  // --- FF ---
+  feedForward(allneuronsImport, layersizesImport);
+  // --- ---
+
+  // --- PRINT OUTPUT ---
+  printImage(input_data);
+  printOutputs(allneuronsImport, layersizesImport);
+  // --- ---
+  free(layersizesImport);
+}
+
+void predict(char* filename_load, unsigned char* input_data){
+  int* layersizesImport;
+  neuron** allneuronsImport;
+  int networksizeImport;
+  int numberoflayersImport;
+  importNetwork(filename_load, &allneuronsImport, &layersizesImport, &numberoflayersImport, &networksizeImport);
+  
+  // --- FEED INPUT ---
+  feedNetwork(input_data, allneuronsImport, layersizesImport);
+  // --- ---
+    
+  // --- FF ---
+  feedForward(allneuronsImport, layersizesImport);
+  // --- ---
+
+  // --- PRINT OUTPUT ---
+  printImage(input_data);
+  printOutputs(allneuronsImport, layersizesImport);
+  // --- ---
+  
+  // --- FREE EVERYTHING ---
+  free(layersizesImport);
+  free(allneuronsImport);
+}
+
+/*
+int main(){
+
+  // ok now last last last optimization ideas:
+  // all layers relu and output sigmoid - DONE, greatly improved training speed. This was amazing
+  // change structure (784 to 10? https://www.youtube.com/watch?v=J_UsVXa9Wp0&ab_channel=ChanchanaSornsoontorn) -> 784 300 10 worked well
+  // change cost function
+  // backpropagation in glsl
+  // find out what "learning rate" is. Maybe multiply gradient factors by fixed number to make them larger  -> IMPLEMENTED LEARNING RATE AS ALPHA MACRO
+  // build convolutional network -> less weights to train
+  // use softmax instead of sigmoid on output layer
+  // benchmark backpropagation algorithm parts and imporve speed -> did that. Seems speedy to me now
+  // change initial random initialisation - tried it. -2 to 2 seems to work best
+  // change normalisation - DONE changed it from 0to1 to -1to1, didnt change much at all
+  // write different optimization algorithms or improve SGD (e.g. smaller alpha the lower the cost function)
+  // implement dropout  https://towardsdatascience.com/a-guide-to-an-efficient-way-to-build-neural-network-architectures-part-i-hyper-parameter-8129009f131b
+  
+  createTrainExportNetwork("100_epoch_64_batchsize_relu_alpha0point5_784_200_10_0_to_1_normalization.network", 100, 64);
+  //loadTrainExportNetwork("20_epoch_128_batchsize_relu_alpha0point5_784_200_10.network", "100_epoch_64_batchsize_relu_alpha0point5_784_200_10.network", 80, 64);
+  //evaluateNetwork("fifty_epochs_64_batchsize_sigmoid.network", 0);
+  evaluateNetwork("100_epoch_64_batchsize_relu_alpha0point5_784_200_10_0_to_1_normalization.network");
+  
+  return 0;
+}
+*/
+
+    </code></pre>
+
+  <script src="/lib/rainbow-custom.min.js"></script>
+</body>
+
+</html>
