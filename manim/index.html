@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>one page to rule them all</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="Description" content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+		<link rel="stylesheet" type="text/css" href="/style.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js" integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+		<!-- Matomo -->
+		<script>
+			var _paq = window._paq = window._paq || [];
+			/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+			_paq.push(['trackPageView']);
+			_paq.push(['enableLinkTracking']);
+			(function() {
+			var u="//r3dapple.de/matomo50/";
+			_paq.push(['setTrackerUrl', u+'matomo.php']);
+			_paq.push(['setSiteId', '1']);
+			var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+			g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+			})();
+		</script>
+		<!-- End Matomo Code -->
+	</head>
+
+	<body>
+		<div class="navbar">
+			<div class="left"><a style="color: white;" href="/">markusheimerl.com</a></div>
+			<a class="hoverable" href="/about">About</a>
+			<a class="hoverable" href="/contact">Contact</a>
+			<a class="hoverable" href="/licenses">Licenses</a>
+			<a class="hoverable" href="/">Blog</a>
+			<div class="right"><a href="https://creativecommons.org/licenses/by-nc/4.0/"><img src="https://licensebuttons.net/l/by-nc/4.0/88x31.png" alt="ccbync4"></a></div>
+		</div>
+		<div class="container">
+			<div class="card">
+				<div class="box">
+					<h1>The aesthetical power of manim and unreasonable effectiveness of math eduction by video</h1>
+					<div class="row"><small>Last changed: 16.08.2022</small></div>
+					<a href="https://docs.manim.community/en/stable/index.html">Manim Community Edition Documentation</a> | <a href="https://www.youtube.com/channel/UCYO_jab_esuFRV4b17AJtAw">3Blue1Brown's YouTube Channel (creator of original manim)</a> 
+					<hr class="solid">
+					<div class="row">
+						<div class="col">
+								<p>
+									Manim is a Python library that makes visualizing mathematical concepts aesthetically possible in a manageable timeframe. You describe text in markdown or latex
+									and draw objects from primitives like circles and rectangles. The centerpiece is the abstract VMObject class from which new classes you define for drawing should inherit.
+									The libraries biggest strength is doing all the necessary things like translating, in-/out fadinging and turning one object into another via frame by frame interpolation, a beautiful way.
+								</p>
+
+								<p>
+									Below is a short video about the isodata thresholding algorithm. It segments a picture into fore- and background by finding a threshold q iteratively for which grayscale values below are considered foreground and above background.
+									The code for the video can be found <a href="manim.html">here</a>.
+									
+								</p>
+								
+								<iframe width=100% height=600px src="https://www.youtube-nocookie.com/embed/bWtb7xA4KHU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
