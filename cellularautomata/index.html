@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>one page to rule them all</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description"
+		content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+	<link rel="stylesheet" type="text/css" href="/style.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"
+		integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"
+		integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4"
+		crossorigin="anonymous"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"
+		integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous"
+		onload="renderMathInElement(document.body);"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+		integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+	<div class="navbar">
+		<div class="left"><a style="color: white;" href="/">markusheimerl.com</a></div>
+		<a class="hoverable" href="/about">About</a>
+		<a class="hoverable" href="/contact">Contact</a>
+		<a class="hoverable" href="/licenses">Licenses</a>
+		<a class="hoverable" href="/">Blog</a>
+		<div class="right"><a href="https://creativecommons.org/licenses/by-nc/4.0/"><img
+					src="https://licensebuttons.net/l/by-nc/4.0/88x31.png" alt="ccbync4"></a></div>
+	</div>
+	<div class="container">
+		<div class="card">
+			<div class="box">
+				<!-- See this: https://bostondynamics.wd1.myworkdayjobs.com/en-US/Boston_Dynamics/job/Waltham-Office/Full-Stack-Software-Engineer--Manipulation_R63 
+				add 3d game of life and describe how u do things to show experience in 3d matrix game logic-->
+				<h1>How complex structures can emerge from simple rules: Cellular automata</h1>
+				<a href="https://en.wikipedia.org/wiki/Life-like_cellular_automaton">Wikipedia</a> |
+				<a href="https://www.conwaylife.com/wiki/List_of_Life-like_cellular_automata">Examples for rules</a> |
+				<a
+					href="https://www.reddit.com/r/cellular_automata/comments/llkp5e/ive_recently_developed_some_new_techniques_for/">Cellular
+					Automata Subreddit Multidimensionality</a>
+				<div class="row"><small>Last changed: 22.04.2021</small></div>
+				<hr class="solid">
+				<p>
+					Let's start with the most famous cellular automation: the life-likes. Life-like cellular automaton
+					are simulations with a distinct rulesets,
+					leaning on Conway's Game of Life. The one shown below is EightLife. There are basically two rules in
+					each ruleset. How many neighboring
+					cells a dead cell needs to be born (B) and how many neighboring cells an alive cell needs to survive
+					(S), in the next iteration of the simulation. All other cells will stay dead or turn so.
+				</p>
+
+				<p>
+					In Eightlife a dead cell needs three living neighbors to be born and an alive cell needs two, three,
+					or eight to stay alive.
+					These are expressed in a rulestring: B3/S2,3,8
+					The WebGL implementation of the simulation below can be found <a
+						href="cellularautomata.html">here</a>.
+				</p>
+
+				<p>
+					You can try out different rulestrings here:
+					<input title="cellRuleInput" id="cellRuleInput" type="text" value="B3/S2,3,8"></input>
+					<button id="cellToggleButton">Stop</button><button id="cellRandButton">Randomize</button> e.g.
+					B3/S4,5, B3,4/S8; Conway's: B3/S0,2,3
+				</p>
+
+				<canvas id="cellularautomatoncanvas" width="1024" height="512" role="img"
+					aria-label="cellularautomatoncanvas"></canvas>
+
+				<p>
+					Things get more interesting when not just the direct neighbors influence a cells next state, but
+					those two, three or more spaces away aswell.
+					The multicellular javascript code is <a href="cellularautomatamulti.html">here</a>.<br>
+				</p>
+				<p>
+
+				<table style="width:100%; position: center">
+					<tr>
+						<th>Radius</th>
+						<th>Rulestring</th>
+						<th>Behaviour</th>
+					</tr>
+					<tr>
+						<th>2</th>
+						<th>B6,7/S5</th>
+					</tr>
+					<tr>
+						<th>2</th>
+						<th>B6,7/S7,8,9</th>
+					</tr>
+					<tr>
+						<th>3</th>
+						<th>B9,7/S9</th>
+					</tr>
+					<tr>
+						<th>4</th>
+						<th>B15,10/S11,10,5</th>
+					</tr>
+					<tr>
+						<th>7</th>
+						<th>B18,22,21/S23,43,49</th>
+						<th>slowly degenerative</th>
+					</tr>
+					<tr>
+						<th>10</th>
+						<th>B38,50,70,45,61,91,90/S43,49,61</th>
+						<th>degenerative</th>
+					</tr>
+					<tr>
+						<th>10</th>
+						<th>B60,38,50,70,45,61,91,90/S43,49,61</th>
+						<th>degenerative</th>
+					</tr>
+					<tr>
+						<th>10</th>
+						<th>B60,38,46,50,70,61,91,90/S40,49,61,65,78,81,99</th>
+						<th>very slowly degenerative</th>
+					</tr>
+					<tr>
+						<th>20</th>
+						<th>B60,38/S81,99</th>
+						<th>stable</th>
+					</tr>
+				</table>
+				<p>
+					Try out rulestrings: <input title="cellRuleInputMulti" id="cellRuleInputMulti" type="text"
+						value="B18,22,19/S23,43,49"></input>
+					And set the radius: <input title="cellRuleInputMultiRadius" id="cellRuleInputMultiRadius"
+						type="number" value="7"></input>
+					<button id="cellToggleButtonApply">Apply</button>
+					<button id="cellRandButtonMulti">Randomize</button>
+					<button id="cellToggleButtonMulti">Stop</button>
+				</p>
+
+				<canvas id="cellularautomatoncanvasmultineighbor" width="1024" height="512" role="img"
+					aria-label="cellularautomatoncanvasmultineighbor"></canvas>
+
+				<h2>Spicing things up with an extra dimension</h2>
+
+				<p>
+					The app was writting in <a href="cellauto3d.html">javascript</a> and the help of additional <a
+						href="r3webgl.html">3D WebGL code</a>.
+					In three dimensions more complex structures can emerge. The top inner surface is connected to the
+					bottom surface.
+					The same is true for all other sides. The cube is interconnected with itself. (Email me if you know
+					how to express this correctly).
+					You can explore this demo by clicking inside the canvas.<br> Look around with your mouse, use W,S,A
+					and D for surface movement, E to go up and Q to go down.
+				</p>
+
+				<p>
+					Try out rulestrings: <input title="cellRuleInput3D" id="cellRuleInput3D" type="text"
+						value="B4/S20,24"></input>
+					<button id="cellauto3dapply">Apply</button>
+					<button id="cellauto3drandomize">Randomize</button>
+					<button id="cellauto3dtoggle">Stop</button>
+				</p>
+
+				<!-- tabindex="1" needed for focus on object. So when I click on it, it focuses and the added eventListener for "keydown" triggers -->
+				<canvas tabindex="1" id="cellauto3dcanvas" width="1024" height="512" role="img"
+					aria-label="cellauto3dcanvas"></canvas>
+				<script src="/lib/r3webgl.js"></script>
+				<script src="cellularautomata.js"></script>
+				<script src="cellularautomatamulti.js"></script>
+				<script src="cellauto3d.js"></script>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
