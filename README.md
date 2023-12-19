@@ -6,7 +6,7 @@
 Here are some ideas to get you started:
 -->
 - 🔭 I’m currently working on robotics.
-- 🌱 I’m currently learning molecular simulations and OpenGL.
+- 🌱 I’m currently learning molecular simulations and webgl.
 - 👯 I’m looking to collaborate on ratisbon robotics.
 - 🤔 I’m looking for help with manufacturing MEMS sensors.
 - 💬 Ask me about RISC-V.
