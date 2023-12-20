@@ -13,6 +13,42 @@
 </head>
 
 <body>
+	<style>
+		.about-section {
+			display: flex;
+			align-items: center;
+			margin-top: 20px;
+			margin-bottom: 20px;
+		}
+
+		.about-image {
+			border-radius: 50%;
+			width: 150px;
+			height: 150px;
+			margin-right: 20px;
+			object-fit: cover;
+		}
+
+		.about-text {
+			flex-grow: 1;
+		}
+
+		@media screen and (max-width: 600px) {
+			.about-section {
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.about-image {
+				margin-bottom: 20px;
+			}
+
+			.about-text {
+				text-align: center;
+			}
+		}
+	</style>
+
 	<nav id="navbar"></nav>
 
 	<div class="container">
@@ -20,12 +56,23 @@
 			<div class="box">
 				<h1>About</h1>
 				<hr class="solid">
-				<a href=""></a>
-				<img src="userphoto.jpg" width=25% height=25%>
-				<p>My name is Markus Heimerl, BSc. Computer Engineering</p>
-				<p>I took the background image during my 2019 trip to Italy.</p>
-				<p>Most visualisations on this page are not optimized for mobile and best viewed on a widescreen laptop
-					or desktop machine.</p>
+				<div class="about-section">
+					<img src="userphoto.jpg" class="about-image" alt="Profile Image">
+					<div class="about-text">
+						<p>My name is Markus Heimerl, BSc. Computer Engineering</p>
+						<p>I took the background image during my 2019 trip to Italy.</p>
+						<p>Most visualisations on this page are not optimized for mobile and best viewed on a widescreen
+							laptop or desktop machine.</p>
+						<a id="github-link" href="https://github.com/markusheimerl">Visit my GitHub</a>
+						<div class="badge-base LI-profile-badge" data-locale="en_US" data-size="large"
+							data-theme="light" data-type="HORIZONTAL" data-vanity="markus-heimerl-4372882a4"
+							data-version="v1">
+							<a class="badge-base__link LI-simple-link"
+								href="https://de.linkedin.com/in/markus-heimerl-4372882a4?trk=profile-badge">Visit my
+								LinkedIn</a>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
