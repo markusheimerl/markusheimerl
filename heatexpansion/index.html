@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>one page to rule them all</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
+	<link rel="stylesheet" type="text/css" href="/style.css">
+	<script>
+		window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+	</script>
+</head>
+
+<body>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+		integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+	<nav id="navbar"></nav>
+	<div class="container">
+		<div class="card">
+			<div class="box">
+				<h1>A parallel 2D heat expansion solution for high performance computing using MPI</h1>
+				<div class="row"><small>Last changed: 25.07.2021</small></div>
+				<a href="https://hpc-wiki.info/hpc/MPI">MPI</a> | <a href="heat_expansion_project.zip">Download project
+					files</a> | <a href="https://doku.lrz.de/display/PUBLIC/SuperMUC-NG">SuperMUC-NG</a> | <a
+					href="https://www.deepl.com/">Translated with DeepL</a>
+				<hr class="solid">
+				<div class="row">
+					<div class="col">
+						<p>
+							<object data="parallel_solution_2d_heat_expansion_deepl.pdf" type="application/pdf"
+								style="min-height:100vh;width:100%"></object>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
