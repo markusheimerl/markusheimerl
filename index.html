@@ -7,36 +7,13 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
 	<link rel="stylesheet" type="text/css" href="/style.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
+	<script>
+		window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+	</script>
 </head>
 
 <body>
-	<nav id="navbar">
-		<div class="toggle-button" onclick="toggleNavbar()">
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>
-		<div class="navbar-links" id="navbar-links">
-			<ul>
-				<li><a href="#">Home</a></li>
-				<li><a href="#">About</a></li>
-				<li><a href="#">Contact</a></li>
-			</ul>
-		</div>
-	</nav>
-
-	<script>
-		function toggleNavbar() {
-			var navbarLinks = document.getElementById('navbar-links');
-			if (navbarLinks.style.display === 'flex') {
-				navbarLinks.style.display = 'none';
-			} else {
-				navbarLinks.style.display = 'flex';
-			}
-		}
-	</script>
-
+	<nav id="navbar"></nav>
 
 	<div class="container">
 		<div class="card">

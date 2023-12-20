@@ -5,6 +5,7 @@ html {
 
 body {
   margin: 0;
+  padding-top: 60px;
   background: #606060 url(bg.jpg);
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -81,6 +82,11 @@ table tr {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .navbar-links ul {

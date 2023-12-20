@@ -5,14 +5,18 @@
   <title>one page to rule them all</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="Description"
-    content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+  <meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
   <link rel="stylesheet" type="text/css" href="/style.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
-  <link href="/lib/rainbow.css" rel="stylesheet" type="text/css">
+  <script>
+    window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+  </script>
 </head>
 
 <body>
+  <link href="/lib/rainbow.css" rel="stylesheet" type="text/css">
+
+  <nav id="navbar"></nav>
+
   <pre><code data-language="c">/*
 * Copyright 2021 Markus Heimerl, OTH Regensburg
 * Licensed under CC BY-NC 4.0

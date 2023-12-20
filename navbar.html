@@ -1,0 +1,32 @@
+<div class="toggle-button" onclick="toggleNavbar()">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+<div class="navbar-links" id="navbar-links">
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/contact/">Contact</a></li>
+        <li><a href="/attribution/">Attribution</a></li>
+    </ul>
+</div>
+<script>
+    function toggleNavbar() {
+        var navbarLinks = document.getElementById('navbar-links');
+        if (navbarLinks.style.display === 'flex') {
+            navbarLinks.style.display = 'none';
+        } else {
+            navbarLinks.style.display = 'flex';
+        }
+    }
+
+    window.addEventListener('resize', function () {
+        var navbarLinks = document.getElementById('navbar-links');
+        if (window.innerWidth > 600) {
+            navbarLinks.style.display = 'flex';
+        } else {
+            navbarLinks.style.display = 'none';
+        }
+    });
+</script>
