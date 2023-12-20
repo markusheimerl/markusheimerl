@@ -1,12 +1,11 @@
 html {
-  /*font-family: 'Hind';*/
   font-family: Arial, sans-serif;
 }
 
 body {
   margin: 0;
   padding-top: 60px;
-  background: #606060 url(bg.jpg);
+  background: #606060 url(bg.webp);
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
