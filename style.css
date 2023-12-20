@@ -1,8 +1,10 @@
 html {
-  font-family: 'Hind';
+  /*font-family: 'Hind';*/
+  font-family: Arial, sans-serif;
 }
 
 body {
+  margin: 0;
   background: #606060 url(bg.jpg);
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -72,36 +74,68 @@ table tr {
   font-size: 17px;
 }
 
-.navbar {
-  overflow: hidden;
+#navbar {
   background-color: #333;
-  width: 100%;
-  border-radius: 10px;
+  color: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.navbar a.hoverable {
-  float: right;
-  display: block;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
+.navbar-links ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.navbar-links li {
+  padding: 0 20px;
+}
+
+.navbar-links a {
+  color: white;
   text-decoration: none;
+  transition: color 0.3s;
 }
 
-.navbar div.left {
-  float: left;
-  color: #f2f2f2;
-  padding: 12px 12px;
+.navbar-links a:hover {
+  color: #ddd;
 }
 
-.navbar div.right {
-  float: right;
-  padding: 6px 11px;
+.toggle-button {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
 }
 
-.navbar a.hoverable:hover {
-  background: #ddd;
-  color: black;
+.toggle-button span {
+  height: 2px;
+  width: 25px;
+  background-color: white;
+}
+
+@media (max-width: 600px) {
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navbar-links ul {
+    flex-direction: column;
+  }
+
+  .navbar-links li {
+    padding: 10px 0;
+  }
+
+  .toggle-button {
+    display: flex;
+  }
 }
 
 .solid {

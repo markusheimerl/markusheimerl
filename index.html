@@ -5,22 +5,39 @@
 	<title>one page to rule them all</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="Description"
-		content="Markus Heimerl's personal page for learning and visualizing various complex concepts.">
+	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
 	<link rel="stylesheet" type="text/css" href="/style.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hind">
 </head>
 
 <body>
-	<div class="navbar">
-		<div class="left"><a style="color: white;" href="/">markusheimerl.com</a></div>
-		<a class="hoverable" href="/about">About</a>
-		<a class="hoverable" href="/contact">Contact</a>
-		<a class="hoverable" href="/licenses">Licenses</a>
-		<a class="hoverable" href="/">Blog</a>
-		<div class="right"><a href="https://creativecommons.org/licenses/by-nc/4.0/"><img
-					src="https://licensebuttons.net/l/by-nc/4.0/88x31.png" alt="ccbync4"></a></div>
-	</div>
+	<nav id="navbar">
+		<div class="toggle-button" onclick="toggleNavbar()">
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+		<div class="navbar-links" id="navbar-links">
+			<ul>
+				<li><a href="#">Home</a></li>
+				<li><a href="#">About</a></li>
+				<li><a href="#">Contact</a></li>
+			</ul>
+		</div>
+	</nav>
+
+	<script>
+		function toggleNavbar() {
+			var navbarLinks = document.getElementById('navbar-links');
+			if (navbarLinks.style.display === 'flex') {
+				navbarLinks.style.display = 'none';
+			} else {
+				navbarLinks.style.display = 'flex';
+			}
+		}
+	</script>
+
+
 	<div class="container">
 		<div class="card">
 			<div class="box">
