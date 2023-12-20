@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>one page to rule them all</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
+	<link rel="stylesheet" type="text/css" href="/style.css">
+	<script>
+		window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+	</script>
+</head>
+
+<body>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+		integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+	<nav id="navbar"></nav>
+
+	<div class="container">
+		<div class="card">
+			<div class="box">
+				<h1>The Magic Of The Fragment Shader</h1>
+				<a href="https://webglfundamentals.org/webgl/lessons/webgl-shadertoy.html">WebGLFundamentals</a> |
+				<a href="https://www.shadertoy.com/">ShaderToy</a> |
+				<a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art of Code</a>
+				<div class="row"><small>Last changed: 15.05.2021</small></div>
+				<hr class="solid">
+				<p>
+					The fragment shader is the second user definable shader that's run during the WebGL/OpenGL rendering
+					pipeline. It is run for every pixel inside each GL primitive.<br>
+					When you put a rectangle in 3D space exactly where the canvas is, you have complete control over
+					each pixel inside the canvas via the fragment shader.<br>
+					This is advantages since most devices have dedicated hardware for computer graphics, which will
+					exectue the drawings in parallel to the CPU on the users end device.<br>
+					Below is the simplest example of a 3D object drawn only using the fragment shader. 3D is simulated
+					by making the color of each point whiter the smaller the height of <br>
+					the parallelogram the vector from the camera to the point and the vector from the camera to the
+					canvas span. Then the the point is rotated on a circular trajectory in <br>
+					3D space.<br>
+					<button id="simplest3DToggleButton">Stop</button>
+				</p>
+
+				<canvas id="simplest3Dcanvas" width="1024" height="512" role="img"
+					aria-label="simplest3Dcanvas"></canvas>
+
+				<p>
+					Using a more complicated technique called ray marching more complex scenes can be described. Also
+					light sources can be emulated. Ray marching works by stepping alongside a
+					cast ray each step as far as the intersection of the last distantce circle and said ray. The radius
+					of the circle is the minimum distance to an object in the scene relative to the
+					last intersection. If the radius of the circle is smaller than a threshold an object is considered
+					hit.<br>
+					<button id="ballsbouncingButton">Stop</button>
+				</p>
+				<canvas id="ballsbouncingcanvas" width="1024" height="512" role="img"
+					aria-label="ballsbouncingcanvas"></canvas>
+
+				<p>
+
+					<button id="shapesandcolorsButton">Stop</button>
+				</p>
+				<canvas id="shapesandcolorscanvas" width="1024" height="512" role="img"
+					aria-label="ballsbouncingcanvas"></canvas>
+
+				<script src="/lib/r3webgl.js"></script>
+				<script src="simplest3D.js"></script>
+				<script src="bouncingBalls.js"></script>
+				<script src="shapesAndColors.js"></script>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
