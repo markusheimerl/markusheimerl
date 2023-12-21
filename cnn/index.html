@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>one page to rule them all</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
+	<link rel="stylesheet" type="text/css" href="/style.css">
+	<script>
+		window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+	</script>
+</head>
+
+<body>
+	<nav id="navbar"></nav>
+	<div class="container">
+		<div class="card">
+			<div class="box">
+				<h1>Classifying sketches with hyperband CNNs</h1>
+				<div class="row"><small>Last changed: 25.07.2021</small></div>
+				<a href="https://arxiv.org/abs/1603.06560">Hyperband</a> | <a
+					href="https://keras.io/api/applications/inceptionv3/">Inception v3</a> | <a
+					href="markus_heimerl_sketchclassify_cnn.zip">Download notebook and model</a>
+				<hr class="solid">
+				<div class="row">
+					<div class="col">
+						<p>
+							<object data="jupyter_export.pdf" type="application/pdf"
+								style="min-height:100vh;width:100%"></object>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
