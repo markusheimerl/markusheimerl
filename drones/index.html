@@ -8,7 +8,29 @@
 	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
 	<link rel="stylesheet" type="text/css" href="/style.css">
 	<script>
-		window.onload = function () { var x = new XMLHttpRequest(); x.onload = function () { document.getElementById("navbar").innerHTML = x.responseText; }; x.open("GET", "/navbar.html", true); x.send(); };
+		document.addEventListener('DOMContentLoaded', function () {
+			var xhr = new XMLHttpRequest();
+			xhr.onload = function () {
+				var parser = new DOMParser();
+				var doc = parser.parseFromString(xhr.responseText, 'text/html');
+				var navbar = document.getElementById('navbar');
+
+				Array.from(doc.body.childNodes).forEach(function (node) {
+					if (node.nodeName.toLowerCase() !== 'script') {
+						navbar.appendChild(node.cloneNode(true));
+					}
+				});
+
+				var scripts = doc.getElementsByTagName('script');
+				for (var i = 0; i < scripts.length; i++) {
+					var script = document.createElement('script');
+					script.text = scripts[i].innerText;
+					document.body.appendChild(script);
+				}
+			};
+			xhr.open("GET", "/navbar.html", true);
+			xhr.send();
+		});
 	</script>
 
 </head>
