@@ -1,3 +1,4 @@
 {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "gpt-commit-generator.text": "The following changes are tracked by git. Create a short commit message. Changes:"
 }
