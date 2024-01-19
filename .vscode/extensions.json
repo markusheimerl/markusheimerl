@@ -2,6 +2,7 @@
     "recommendations": [
         "ms-vscode.live-server",
         "esbenp.prettier-vscode",
-        "karlmoritzwildenhain.gpt-commit-generator"
+        "karlmoritzwildenhain.gpt-commit-generator",
+        "github.github-vscode-theme"
     ]
 }
