@@ -6,7 +6,7 @@
 Here are some ideas to get you started:
 -->
 - 🔭 I’m currently working on robotics.
-- 🌱 I’m currently learning accelerated simulations and gpu design.
+- 🌱 I’m currently learning the mathematics of accelerated simulations and reinforcement learning.
 - 👯 I’m looking to collaborate on ratisbon robotics.
 - 🤔 I’m looking for help with gathering funding.
 - 💬 Ask me about hardware.
