@@ -6,10 +6,10 @@
 Here are some ideas to get you started:
 -->
 - 🔭 I’m currently working on robotics.
-- 🌱 I’m currently learning molecular simulations and webgpu.
+- 🌱 I’m currently learning accelerated simulations and gpu design.
 - 👯 I’m looking to collaborate on ratisbon robotics.
-- 🤔 I’m looking for help with manufacturing MEMS sensors.
-- 💬 Ask me about RISC-V.
+- 🤔 I’m looking for help with gathering funding.
+- 💬 Ask me about hardware.
 - 📫 How to reach me: markusheimerl@hotmail.com.
 - ⚡ Fun fact: I know quite a bit about biology.
 
