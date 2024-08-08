@@ -7,6 +7,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="Description" content="Markus Heimerl's personal page for visualizing various concepts.">
 	<link rel="stylesheet" type="text/css" href="/style.css">
+	<style>
+		#pdfPages img {
+			max-width: 100%;
+			height: auto;
+			display: block;
+			margin-bottom: 20px;
+		}
+	</style>
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 			var xhr = new XMLHttpRequest();
@@ -48,16 +56,34 @@
 				<hr class="solid">
 				<div class="row">
 					<div class="col">
-						<p>
-							<iframe
-								src="https://docs.google.com/viewer?url=https://markusheimerl.com/satellites/satellites_paper.pdf&embedded=true"
-								style="width:100%; height:600px;" frameborder="0"></iframe>
-						</p>
+						<div id="pdfPages"></div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const pdfPages = document.getElementById('pdfPages');
+			let pageNum = 1;
+
+			function loadImage(pageNum) {
+				const img = new Image();
+				img.onload = function () {
+					pdfPages.appendChild(img);
+					loadImage(pageNum + 1);
+				};
+				img.onerror = function () {
+					// Stop when we can't load any more images
+					return;
+				};
+				img.src = `satellites/satellites_page-${String(pageNum)}.jpg`;
+			}
+
+			loadImage(pageNum);
+		});
+	</script>
 </body>
 
 </html>
